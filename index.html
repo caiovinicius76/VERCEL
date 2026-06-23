@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Economic Radar - Valuation Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background:#0b0f19;
+    color:#ffffff;
+    padding:30px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    color:#60a5fa;
+    font-size:2.7rem;
+    margin-bottom:8px;
+}
+
+h2{
+    text-align:center;
+    color:#94a3b8;
+    font-weight:400;
+    margin-bottom:30px;
+}
+
+.card{
+    background:#121a2b;
+    border:1px solid #22304d;
+    border-radius:18px;
+    padding:25px;
+    margin-bottom:25px;
+    box-shadow:
+        0 10px 25px rgba(0,0,0,0.45),
+        0 0 10px rgba(37,99,235,0.08);
+}
+
+p{
+    margin-top:15px;
+    margin-bottom:8px;
+}
+
+.valor{
+    color:#60a5fa;
+    font-weight:bold;
+}
+
+.slider{
+    width:100%;
+    height:8px;
+    border-radius:10px;
+    appearance:none;
+    background:#24324d;
+    outline:none;
+}
+
+.slider::-webkit-slider-thumb{
+    appearance:none;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:#60a5fa;
+    cursor:pointer;
+}
+
+.slider::-moz-range-thumb{
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:#60a5fa;
+    cursor:pointer;
+}
+
+.metricas{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.box{
+    background:#172033;
+    border:1px solid #28406e;
+    border-radius:15px;
+    padding:25px;
+    text-align:center;
+    transition:.3s;
+}
+
+.box:hover{
+    transform:translateY(-4px);
+}
+
+.box h3{
+    color:#94a3b8;
+    margin-bottom:10px;
+}
+
+.box p{
+    font-size:24px;
+    font-weight:bold;
+}
+
+#valuation{
+    color:#4ade80;
+    font-size:30px;
+}
+
+.botoes{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-bottom:25px;
+}
+
+button{
+    border:none;
+    padding:12px 22px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.real{
+    background:#2563eb;
+    color:white;
+}
+
+.real:hover{
+    background:#1d4ed8;
+}
+
+.otim{
+    background:#1e40af;
+    color:white;
+}
+
+.otim:hover{
+    background:#1d4ed8;
+}
+
+canvas{
+    background:#121a2b;
+    border-radius:12px;
+    padding:10px;
+}
+
+@media(max-width:768px){
+
+    body{
+        padding:15px;
+    }
+
+    h1{
+        font-size:2rem;
+    }
+
+    .metricas{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>📈 Economic Radar</h1>
+<h2>Valuation Dashboard</h2>
+
+<div class="card">
+
+<div class="botoes">
+    <button class="real" onclick="cenarioRealista()">
+        Cenário Realista
+    </button>
+
+    <button class="otim" onclick="cenarioOtimista()">
+        Cenário Otimista
+    </button>
+</div>
+
+<p>
+Usuários Pagantes:
+<span class="valor" id="usuariosTxt"></span>
+</p>
+
+<input
+class="slider"
+type="range"
+id="usuarios"
+min="100"
+max="10000"
+value="1500">
+
+<p>
+Preço da Assinatura (R$):
+<span class="valor" id="assinaturaTxt"></span>
+</p>
+
+<input
+class="slider"
+type="range"
+id="assinatura"
+min="1"
+max="50"
+step="0.10"
+value="9.90">
+
+<p>
+Crescimento Anual (%):
+<span class="valor" id="crescimentoTxt"></span>
+</p>
+
+<input
+class="slider"
+type="range"
+id="crescimento"
+min="0"
+max="100"
+value="0">
+
+<p>
+Múltiplo de Mercado:
+<span class="valor" id="multiploTxt"></span>x
+</p>
+
+<input
+class="slider"
+type="range"
+id="multiplo"
+min="1"
+max="15"
+step="0.5"
+value="5">
+
+<p>
+Horizonte de Projeção (anos):
+<span class="valor" id="anosTxt"></span>
+</p>
+
+<input
+class="slider"
+type="range"
+id="anos"
+min="1"
+max="10"
+value="3">
+
+</div>
+
+<div class="metricas">
+
+<div class="box">
+<h3>Usuários Projetados</h3>
+<p id="usuariosProjetados"></p>
+</div>
+
+<div class="box">
+<h3>Receita Anual</h3>
+<p id="receitaAnual"></p>
+</div>
+
+<div class="box">
+<h3>Valuation Estimado</h3>
+<p id="valuation"></p>
+</div>
+
+</div>
+
+<div class="card">
+<canvas id="grafico"></canvas>
+</div>
+
+</div>
+
+<script>
+
+const sliders =
+document.querySelectorAll("input[type=range]");
+
+let chart;
+
+function moeda(valor){
+
+    return valor.toLocaleString(
+        "pt-BR",
+        {
+            style:"currency",
+            currency:"BRL"
+        }
+    );
+
+}
+
+function atualizar(){
+
+    const usuarios =
+    Number(document.getElementById("usuarios").value);
+
+    const assinatura =
+    Number(document.getElementById("assinatura").value);
+
+    const crescimento =
+    Number(document.getElementById("crescimento").value);
+
+    const multiplo =
+    Number(document.getElementById("multiplo").value);
+
+    const anos =
+    Number(document.getElementById("anos").value);
+
+    document.getElementById("usuariosTxt")
+    .innerText = usuarios.toLocaleString("pt-BR");
+
+    document.getElementById("assinaturaTxt")
+    .innerText = assinatura.toFixed(2);
+
+    document.getElementById("crescimentoTxt")
+    .innerText = crescimento + "%";
+
+    document.getElementById("multiploTxt")
+    .innerText = multiplo;
+
+    document.getElementById("anosTxt")
+    .innerText = anos;
+
+    const usuariosProjetados =
+    usuarios * Math.pow(1 + crescimento/100, anos);
+
+    const receitaMensal =
+    usuariosProjetados * assinatura;
+
+    const receitaAnual =
+    receitaMensal * 12;
+
+    const valuation =
+    receitaAnual * multiplo;
+
+    document.getElementById("usuariosProjetados")
+    .innerText =
+    Math.round(usuariosProjetados).toLocaleString("pt-BR");
+
+    document.getElementById("receitaAnual")
+    .innerText =
+    moeda(receitaAnual);
+
+    document.getElementById("valuation")
+    .innerText =
+    moeda(valuation);
+
+    atualizarGrafico(
+        usuarios,
+        assinatura,
+        crescimento,
+        multiplo,
+        anos
+    );
+
+}
+
+function atualizarGrafico(
+    usuarios,
+    assinatura,
+    crescimento,
+    multiplo,
+    anos
+){
+
+    const labels = [];
+    const dados = [];
+
+    for(let ano = 1; ano <= anos; ano++){
+
+        const usuariosAno =
+        usuarios * Math.pow(1 + crescimento/100, ano);
+
+        const receitaAno =
+        usuariosAno * assinatura * 12;
+
+        const valuationAno =
+        receitaAno * multiplo;
+
+        labels.push("Ano " + ano);
+        dados.push(Math.round(valuationAno));
+
+    }
+
+    if(chart){
+        chart.destroy();
+    }
+
+    chart = new Chart(
+        document.getElementById("grafico"),
+        {
+            type:"line",
+            data:{
+                labels:labels,
+                datasets:[
+                    {
+                        label:"Valuation (R$)",
+                        data:dados,
+                        borderColor:"#60a5fa",
+                        backgroundColor:"rgba(96,165,250,0.15)",
+                        fill:true,
+                        tension:0.35
+                    }
+                ]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    legend:{
+                        labels:{
+                            color:"#ffffff"
+                        }
+                    }
+                },
+                scales:{
+                    x:{
+                        ticks:{
+                            color:"#ffffff"
+                        },
+                        grid:{
+                            color:"#22304d"
+                        }
+                    },
+                    y:{
+                        ticks:{
+                            color:"#ffffff"
+                        },
+                        grid:{
+                            color:"#22304d"
+                        }
+                    }
+                }
+            }
+        }
+    );
+
+}
+
+function cenarioRealista(){
+
+    document.getElementById("usuarios").value = 1500;
+    document.getElementById("assinatura").value = 9.90;
+    document.getElementById("crescimento").value = 0;
+    document.getElementById("multiplo").value = 5;
+    document.getElementById("anos").value = 3;
+
+    atualizar();
+
+}
+
+function cenarioOtimista(){
+
+    document.getElementById("usuarios").value = 3000;
+    document.getElementById("assinatura").value = 12.90;
+    document.getElementById("crescimento").value = 35;
+    document.getElementById("multiplo").value = 8;
+    document.getElementById("anos").value = 5;
+
+    atualizar();
+
+}
+
+sliders.forEach(slider => {
+    slider.addEventListener("input", atualizar);
+});
+
+atualizar();
+
+</script>
+
+</body>
+</html>
